@@ -23,14 +23,14 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <!-- ========================================== -->
 
-    <!-- Hardened Content Security Policy for Firebase, Google Auth, and FullCalendar CDN -->
+    <!-- Updated Content Security Policy allowing Google Auth popups & FullCalendar resources -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
         base-uri 'self';
         object-src 'none';
         form-action 'self';
         upgrade-insecure-requests;
-        script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net;
+        script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://apis.google.com;
         style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
         img-src 'self' data: blob: https:;
         font-src 'self' data: blob: https:;
@@ -43,6 +43,7 @@
             https://*.googleapis.com 
             wss://firestore.googleapis.com;
         worker-src 'self' blob:;
+        frame-src https://halom-casa-booking-calendar.firebaseapp.com https://*.firebaseapp.com;
         manifest-src 'self';
     ">
 
@@ -114,7 +115,7 @@
     <!-- Modal Backdrop Overlay -->
     <div id="modalOverlay" class="sheet-overlay"></div>
 
-    <!-- Firebase SDK Modular Assembly (Populated with your official project credentials) -->
+    <!-- Firebase SDK Modular Assembly -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -189,15 +190,18 @@
         // Login / Logout Handler
         loginBtn.addEventListener('click', () => {
             if (!currentUser) {
-                signInWithPopup(auth, provider).catch(err => console.error("Auth error:", err));
+                signInWithPopup(auth, provider).catch(err => {
+                    console.error("Auth error:", err);
+                    alert("Authentication window blocked or closed. Please verify your pop-up blocker settings.");
+                });
             } else {
                 signOut(auth);
             }
         });
 
-        // Sync Firestore Data in Real-time to Map onto FullCalendar UI
+        // Sync Firestore Data in Real-time to Map onto FullCalendar UI (Updated to "blockedDates")
         function setupRealtimeSync() {
-            const q = collection(db, "bookings");
+            const q = collection(db, "blockedDates");
             onSnapshot(q, (snapshot) => {
                 const events = [];
                 snapshot.forEach((doc) => {
@@ -205,7 +209,7 @@
                     if (data.rooms && Array.isArray(data.rooms)) {
                         data.rooms.forEach(room => {
                             events.push({
-                                title: `${data.guestName} (${room})`,
+                                title: `${data.guestName || "Guest"} (${room})`,
                                 start: data.date,
                                 allDay: true,
                                 backgroundColor: '#007aff'
@@ -215,6 +219,8 @@
                 });
                 calendar.removeAllEvents();
                 calendar.addEventSource(events);
+            }, (error) => {
+                console.error("Database read error:", error);
             });
         }
 
@@ -235,7 +241,7 @@
         closeModalBtn.addEventListener('click', closeBookingSheet);
         modalOverlay.addEventListener('click', closeBookingSheet);
 
-        // Transaction submission 
+        // Transaction submission (Now pointing to "blockedDates" to match your desktop database setup)
         bookingForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!currentUser) return;
@@ -251,12 +257,12 @@
                 return;
             }
             if (selectedRooms.length > 3) {
-                alert('Security Rule Restriction: Maximum of 3 rooms allowed per booking document.');
+                alert('Security Rule Restriction: Maximum of 3 rooms allowed per booking.');
                 return;
             }
 
             try {
-                await addDoc(collection(db, "bookings"), {
+                await addDoc(collection(db, "blockedDates"), {
                     date: date,
                     guestName: guestName,
                     rooms: selectedRooms,
@@ -267,7 +273,7 @@
                 closeBookingSheet();
             } catch (error) {
                 console.error("Write rejected by security validation policy:", error);
-                alert("Booking failure: Verification failed or constraints broken.");
+                alert("Booking failure: Verification failed or rule limits exceeded.");
             }
         });
     </script>
