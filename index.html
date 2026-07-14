@@ -3,49 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    
-    <!-- Viewport optimized for iOS mobile interaction to prevent accidental zooming breaking layouts -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-    <!-- ========================================== -->
-    <!-- APPLE MOBILE WEB APP (NATIVE PWA) METAS    -->
-    <!-- ========================================== -->
-    <!-- Runs the site in standalone fullscreen mode hiding Safari browser UI -->
+    <!-- APPLE MOBILE WEB APP (NATIVE PWA) METAS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    
-    <!-- Makes the iOS status bar transparent so content fills the notch area gracefully -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- Short name displayed directly beneath your Home Screen icon -->
     <meta name="apple-mobile-web-app-title" content="Halom Casa">
-    
-    <!-- References your custom home screen icon -->
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <!-- ========================================== -->
 
-    <!-- Updated Content Security Policy allowing Google Auth popups & FullCalendar resources -->
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self';
-        base-uri 'self';
-        object-src 'none';
-        form-action 'self';
-        upgrade-insecure-requests;
-        script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://apis.google.com;
-        style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
-        img-src 'self' data: blob: https:;
-        font-src 'self' data: blob: https:;
-        connect-src 
-            https://firestore.googleapis.com 
-            https://identitytoolkit.googleapis.com 
-            https://securetoken.googleapis.com 
-            https://firebaseinstallations.googleapis.com 
-            https://www.googleapis.com 
-            https://*.googleapis.com 
-            wss://firestore.googleapis.com;
-        worker-src 'self' blob:;
-        frame-src https://halom-casa-booking-calendar.firebaseapp.com https://*.firebaseapp.com;
-        manifest-src 'self';
-    ">
+    <!-- FLATTENED CSP: Written on a single continuous line to prevent GitHub build engine parser crashes -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; upgrade-insecure-requests; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://apis.google.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; font-src 'self' data: blob: https:; connect-src https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://www.googleapis.com https://*.googleapis.com wss://firestore.googleapis.com; worker-src 'self' blob:; frame-src https://halom-casa-booking-calendar.firebaseapp.com https://*.firebaseapp.com; manifest-src 'self';">
 
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta http-equiv="X-XSS-Protection" content="0">
@@ -61,19 +28,15 @@
 </head>
 <body>
 
-    <!-- iOS App Top Bar Frame -->
     <header class="app-header">
         <h1>Halom Casa</h1>
         <button id="loginBtn" class="btn btn-primary">Login</button>
     </header>
 
-    <!-- Main Container -->
     <main class="app-container">
-        <!-- Interactive FullCalendar Viewport -->
         <div id="calendar"></div>
     </main>
 
-    <!-- Native-feel iOS Sliding Bottom Sheet Modal for Booking Input -->
     <div id="bookingModal" class="ios-bottom-sheet">
         <div class="sheet-handle"></div>
         <div class="sheet-content">
@@ -112,7 +75,6 @@
         </div>
     </div>
     
-    <!-- Modal Backdrop Overlay -->
     <div id="modalOverlay" class="sheet-overlay"></div>
 
     <!-- Firebase SDK Modular Assembly -->
@@ -121,7 +83,6 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Verified active Firebase credentials
         const firebaseConfig = {
             apiKey: "AIzaSyCLeIhKV7wHeeTtJhKuCSJuoJwfr8Lqn54",
             authDomain: "halom-casa-booking-calendar.firebaseapp.com",
@@ -140,14 +101,12 @@
         let currentUser = null;
         let calendar = null;
 
-        // DOM Elements
         const loginBtn = document.getElementById('loginBtn');
         const bookingModal = document.getElementById('bookingModal');
         const modalOverlay = document.getElementById('modalOverlay');
         const closeModalBtn = document.getElementById('closeModalBtn');
         const bookingForm = document.getElementById('bookingForm');
 
-        // FullCalendar Initialization
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
             calendar = new FullCalendar.Calendar(calendarEl, {
@@ -172,7 +131,6 @@
             setupRealtimeSync();
         });
 
-        // Authentication State Listener
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -187,19 +145,16 @@
             }
         });
 
-        // Login / Logout Handler
         loginBtn.addEventListener('click', () => {
             if (!currentUser) {
                 signInWithPopup(auth, provider).catch(err => {
                     console.error("Auth error:", err);
-                    alert("Authentication window blocked or closed. Please verify your pop-up blocker settings.");
                 });
             } else {
                 signOut(auth);
             }
         });
 
-        // Sync Firestore Data in Real-time to Map onto FullCalendar UI (Updated to "blockedDates")
         function setupRealtimeSync() {
             const q = collection(db, "blockedDates");
             onSnapshot(q, (snapshot) => {
@@ -224,7 +179,6 @@
             });
         }
 
-        // UI Modal Sheet Control
         function openBookingSheet(dateStr) {
             document.getElementById('selectedDate').value = dateStr;
             document.getElementById('modalTitle').textContent = `Book for ${dateStr}`;
@@ -241,7 +195,6 @@
         closeModalBtn.addEventListener('click', closeBookingSheet);
         modalOverlay.addEventListener('click', closeBookingSheet);
 
-        // Transaction submission (Now pointing to "blockedDates" to match your desktop database setup)
         bookingForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!currentUser) return;
@@ -249,15 +202,10 @@
             const date = document.getElementById('selectedDate').value;
             const guestName = document.getElementById('guestName').value.trim();
             const checkedBoxes = document.querySelectorAll('input[name="rooms"]:checked');
-            
             const selectedRooms = Array.from(checkedBoxes).map(cb => cb.value);
 
             if (selectedRooms.length === 0) {
                 alert('Please select at least one room.');
-                return;
-            }
-            if (selectedRooms.length > 3) {
-                alert('Security Rule Restriction: Maximum of 3 rooms allowed per booking.');
                 return;
             }
 
@@ -272,8 +220,8 @@
                 });
                 closeBookingSheet();
             } catch (error) {
-                console.error("Write rejected by security validation policy:", error);
-                alert("Booking failure: Verification failed or rule limits exceeded.");
+                console.error("Database write error:", error);
+                alert("Booking failure: Verification failed.");
             }
         });
     </script>
