@@ -1,6 +1,3 @@
-/* ========================================== */
-/* iOS NATIVE SYSTEM DESIGN TOKENS            */
-/* ========================================== */
 :root {
     --ios-blue: #007aff;
     --ios-green: #34c759;
@@ -30,7 +27,6 @@ body {
     flex-direction: column;
 }
 
-/* App Header Frame adjusting dynamically for Apple Notch spacing */
 .app-header {
     background-color: var(--ios-card-bg);
     border-bottom: 1px solid var(--ios-border);
@@ -49,14 +45,12 @@ body {
     letter-spacing: -0.5px;
 }
 
-/* Container Structure */
 .app-container {
     flex: 1;
     padding: 16px;
     padding-bottom: calc(30px + var(--safe-bottom));
 }
 
-/* FullCalendar iOS Adaptive Interface Adjustments */
 #calendar {
     background: var(--ios-card-bg);
     padding: 14px;
@@ -107,7 +101,6 @@ body {
     margin-top: 2px !important;
 }
 
-/* UI Standard Form & Button Components */
 .btn {
     font-size: 14px;
     font-weight: 600;
@@ -126,7 +119,6 @@ body {
 .btn-secondary { background-color: var(--ios-bg); color: var(--ios-text); }
 .btn-success { background-color: var(--ios-green); color: #fff; }
 
-/* Native-feel iOS Sliding Bottom Sheet Modal Framework */
 .ios-bottom-sheet {
     position: fixed;
     bottom: 0;
@@ -161,7 +153,6 @@ body {
     text-align: center;
 }
 
-/* Form Styling Layout definitions */
 .form-group {
     margin-bottom: 20px;
 }
@@ -186,7 +177,6 @@ body {
     -webkit-appearance: none;
 }
 
-/* Touch Segmented Component Layout (Checkbox Tiles) */
 .rooms-checkbox-group {
     display: flex;
     gap: 10px;
@@ -237,7 +227,6 @@ body {
     border-radius: 10px;
 }
 
-/* Overlay Sheet Shadow Control */
 .sheet-overlay {
     position: fixed;
     top: 0;
