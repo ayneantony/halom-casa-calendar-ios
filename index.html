@@ -20,6 +20,10 @@
             justify-content: space-between;
             align-items: center;
         }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
         #loginBox, #calendarContainer {
             max-width: 1100px;
             margin: 20px auto;
@@ -59,7 +63,10 @@
 
     <header>
         <h3>Halom Casa Calendar</h3>
-        <button id="logoutBtn" style="width:auto;display:none">Logout</button>
+        <div class="header-actions">
+            <button id="copyReportBtn" style="width:auto;display:none;background:#3498db;color:#fff;border:none;border-radius:4px;cursor:pointer;">Copy Month Report</button>
+            <button id="logoutBtn" style="width:auto;display:none">Logout</button>
+        </div>
     </header>
 
     <div id="loginBox">
@@ -144,6 +151,7 @@
         // Elements
         const loginBtn = document.getElementById("loginBtn");
         const logoutBtn = document.getElementById("logoutBtn");
+        const copyReportBtn = document.getElementById("copyReportBtn");
         const loginBox = document.getElementById("loginBox");
         const calendarContainer = document.getElementById("calendarContainer");
         const emailInput = document.getElementById("email");
@@ -183,11 +191,13 @@
                 loginBox.style.display = "none";
                 calendarContainer.style.display = "block";
                 logoutBtn.style.display = "block";
+                copyReportBtn.style.display = "block";
                 if (!calendar) initCalendar();
             } else {
                 loginBox.style.display = "block";
                 calendarContainer.style.display = "none";
                 logoutBtn.style.display = "none";
+                copyReportBtn.style.display = "none";
             }
         });
 
@@ -255,6 +265,64 @@
                 });
             });
         }
+
+        copyReportBtn.onclick = async () => {
+            if (!calendar) return;
+
+            // Get the current viewed date from FullCalendar
+            const currentPeriod = calendar.getDate(); 
+            const currentYear = currentPeriod.getFullYear();
+            const currentMonth = currentPeriod.getMonth(); // 0-11
+
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const currentMonthName = monthNames[currentMonth];
+
+            // Get all visible events and sort them chronologically
+            let events = calendar.getEvents().filter(e => {
+                const eventDate = new Date(e.startStr);
+                return eventDate.getFullYear() === currentYear && eventDate.getMonth() === currentMonth;
+            });
+
+            events.sort((a, b) => a.startStr.localeCompare(b.startStr));
+
+            let lines = [`Halom Casa Bookings - ${currentMonthName} ${currentYear}\n`];
+
+            events.forEach(e => {
+                const props = e.extendedProps;
+                // Parse date string (YYYY-MM-DD) to custom presentation (DD/MM/YYYY)
+                const parts = e.startStr.split('-');
+                if(parts.length === 3) {
+                    const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    lines.push(`${formattedDate} - ${props.bookingType} - ${props.guestName}`);
+                }
+            });
+
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const day = pad(now.getDate());
+            const monthStr = pad(now.getMonth() + 1);
+            const year = now.getFullYear();
+            
+            let hours = now.getHours();
+            const ampm = hours >= 12 ? 'pm' : 'am';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // conversion of 0 to 12
+            const minutes = pad(now.getMinutes());
+
+            const formattedGenDate = `${day}/${monthStr}/${year} ${pad(hours)}:${minutes} ${ampm}`;
+
+            lines.push(`\nTotal Bookings: ${events.length}`);
+            lines.push(`Generated on: ${formattedGenDate}`);
+
+            const reportText = lines.join('\n');
+
+            try {
+                await navigator.clipboard.writeText(reportText);
+                alert("Report successfully copied to clipboard!");
+            } catch (err) {
+                alert("Failed to copy report: " + err);
+            }
+        };
 
         saveBooking.onclick = async () => {
             const user = auth.currentUser;
