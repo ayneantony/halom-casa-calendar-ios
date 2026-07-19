@@ -2,86 +2,110 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-
-    <!-- APPLE MOBILE WEB APP (NATIVE PWA) METAS -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Halom Casa">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-
-    <!-- SINGLE-LINE CSP: Optimized to bypass iOS Safari limitations and prevent GitHub Pages build crashes -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; upgrade-insecure-requests; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://apis.google.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; font-src 'self' data: blob: https:; connect-src https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://www.googleapis.com https://*.googleapis.com wss://firestore.googleapis.com; worker-src 'self' blob:; frame-src https://halom-casa-booking-calendar.firebaseapp.com https://*.firebaseapp.com; manifest-src 'self';">
-
-    <meta name="referrer" content="strict-origin-when-cross-origin">
-    <meta http-equiv="X-XSS-Protection" content="0">
-    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=()">
-    
-    <title>Halom Casa Calendar (iOS)</title>
-
-    <!-- FullCalendar 6 Engine Core Framework Files -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halom Casa Calendar</title>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
-
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f5f5f5;
+        }
+        header {
+            background: #222;
+            color: #fff;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #loginBox, #calendarContainer {
+            max-width: 1100px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        input, select, button {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+        }
+    </style>
 </head>
 <body>
 
-    <header class="app-header">
-        <h1>Halom Casa</h1>
-        <button id="loginBtn" class="btn btn-primary">Login</button>
+    <header>
+        <h3>Halom Casa Calendar</h3>
+        <button id="logoutBtn" style="width:auto;display:none">Logout</button>
     </header>
 
-    <main class="app-container">
+    <div id="loginBox">
+        <h2>Login</h2>
+        <input id="email" type="email" placeholder="Email">
+        <input id="password" type="password" placeholder="Password">
+        <button id="loginBtn">Login</button>
+        <div id="loginMsg" style="color: red; margin-top: 10px;"></div>
+    </div>
+
+    <div id="calendarContainer" style="display:none">
         <div id="calendar"></div>
-    </main>
+    </div>
 
-    <div id="bookingModal" class="ios-bottom-sheet">
-        <div class="sheet-handle"></div>
-        <div class="sheet-content">
-            <h2 id="modalTitle">Book Room</h2>
-            <form id="bookingForm">
-                <input type="hidden" id="selectedDate">
-                
-                <div class="form-group">
-                    <label for="guestName">Guest Name</label>
-                    <input type="text" id="guestName" required autocomplete="off" placeholder="Enter guest name">
-                </div>
-
-                <div class="form-group">
-                    <label for="roomSelection">Select Rooms (Max 3)</label>
-                    <div class="rooms-checkbox-group">
-                        <label class="checkbox-tile">
-                            <input type="checkbox" name="rooms" value="Room 1">
-                            <span class="tile-label">Room 1</span>
-                        </label>
-                        <label class="checkbox-tile">
-                            <input type="checkbox" name="rooms" value="Room 2">
-                            <span class="tile-label">Room 2</span>
-                        </label>
-                        <label class="checkbox-tile">
-                            <input type="checkbox" name="rooms" value="Room 3">
-                            <span class="tile-label">Room 3</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" id="closeModalBtn" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" class="btn btn-success">Confirm Booking</button>
-                </div>
-            </form>
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <h3>Create Booking</h3>
+            <input id="guestName" placeholder="Guest Name">
+            <select id="bookingType">
+                <option value="Full Property">Full Property</option>
+                <option value="1 Room">1 Room</option>
+                <option value="2 Rooms">2 Rooms</option>
+            </select>
+            <button id="saveBooking">Save Booking</button>
+            <button onclick="closeBooking()">Cancel</button>
         </div>
     </div>
-    
-    <div id="modalOverlay" class="sheet-overlay"></div>
 
-    <!-- Firebase SDK Modular Assembly -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <h3>Booking Details</h3>
+            <p><b>Date:</b> <span id="vDate"></span></p>
+            <p><b>Guest:</b> <span id="vGuest"></span></p>
+            <p><b>Type:</b> <span id="vType"></span></p>
+            <p><b>Booked By:</b> <span id="vBookedBy"></span></p>
+            <p><b>Booked On:</b> <span id="vBookedOn"></span></p>
+            <p><b>Availability:</b> <span id="vAvailability"></span></p>
+            <button id="unblockBtn" style="background: #e74c3c; color: white;">Delete Booking</button>
+            <button onclick="closeView()">Close</button>
+        </div>
+    </div>
+
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCLeIhKV7wHeeTtJhKuCSJuoJwfr8Lqn54",
@@ -89,377 +113,203 @@
             projectId: "halom-casa-booking-calendar",
             storageBucket: "halom-casa-booking-calendar.firebasestorage.app",
             messagingSenderId: "171254486073",
-            appId: "1:171254486073:web:d1ea9a603c5b33d602a9e8",
-            measurementId: "G-CCRRXGVNY1"
+            appId: "1:171254486073:web:d1ea9a603c5b33d602a9e8"
         };
+
+        const ADMIN_EMAIL = "ayneantony4159@gmail.com";
+
+        function getUserColor(email) {
+            if (email === ADMIN_EMAIL) {
+                return "#e74c3c"; // Red for admin
+            }
+            const colors = [
+                "#3498db", "#2ecc71", "#9b59b6", "#f39c12", 
+                "#1abc9c", "#e84393", "#34495e", "#16a085"
+            ];
+            let hash = 0;
+            for (let i = 0; i < email.length; i++) {
+                hash += email.charCodeAt(i);
+            }
+            return colors[Math.abs(hash) % colors.length];
+        }
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
 
-        let currentUser = null;
-        let calendar = null;
+        let calendar;
+        let selectedDate = null;
+        let selectedDoc = null;
 
-        const loginBtn = document.getElementById('loginBtn');
-        const bookingModal = document.getElementById('bookingModal');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const bookingForm = document.getElementById('bookingForm');
+        // Elements
+        const loginBtn = document.getElementById("loginBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const loginBox = document.getElementById("loginBox");
+        const calendarContainer = document.getElementById("calendarContainer");
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+        const loginMsg = document.getElementById("loginMsg");
+        const guestName = document.getElementById("guestName");
+        const bookingType = document.getElementById("bookingType");
+        const saveBooking = document.getElementById("saveBooking");
+        const unblockBtn = document.getElementById("unblockBtn");
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('calendar');
-            calendar = new FullCalendar.Calendar(calendarEl, {
+        const vDate = document.getElementById("vDate");
+        const vGuest = document.getElementById("vGuest");
+        const vType = document.getElementById("vType");
+        const vBookedBy = document.getElementById("vBookedBy");
+        const vBookedOn = document.getElementById("vBookedOn");
+        const vAvailability = document.getElementById("vAvailability");
+
+        function openModal(id) { document.getElementById(id).style.display = "flex"; }
+        function closeModal(id) { document.getElementById(id).style.display = "none"; }
+        
+        window.closeBooking = () => closeModal("bookingModal");
+        window.closeView = () => closeModal("viewModal");
+
+        loginBtn.onclick = async () => {
+            try {
+                loginMsg.innerText = "";
+                await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+            } catch (e) {
+                loginMsg.innerText = e.message;
+            }
+        };
+
+        logoutBtn.onclick = () => signOut(auth);
+
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                loginBox.style.display = "none";
+                calendarContainer.style.display = "block";
+                logoutBtn.style.display = "block";
+                if (!calendar) initCalendar();
+            } else {
+                loginBox.style.display = "block";
+                calendarContainer.style.display = "none";
+                logoutBtn.style.display = "none";
+            }
+        });
+
+        function roomsUsed(type) {
+            if (type === "Full Property") return 3;
+            if (type === "2 Rooms") return 2;
+            return 1;
+        }
+
+        function initCalendar() {
+            calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
                 initialView: 'dayGridMonth',
-                headerToolbar: {
-                    left: 'prev',
-                    center: 'title',
-                    right: 'next'
+                dateClick(info) {
+                    selectedDate = info.dateStr;
+                    openModal("bookingModal");
                 },
-                height: 'auto',
-                editable: false,
-                selectable: true,
-                select: function(info) {
-                    if (!currentUser) {
-                        alert('Please sign in to log reservations.');
-                        return;
-                    }
-                    openBookingSheet(info.startStr);
+                eventClick(info) {
+                    const e = info.event.extendedProps;
+                    selectedDoc = e.docId;
+                    vDate.innerText = info.event.startStr;
+                    vGuest.innerText = e.guestName;
+                    vType.innerText = e.bookingType;
+                    vBookedBy.innerText = e.bookedBy || "-";
+                    vBookedOn.innerText = e.createdAt && e.createdAt.toDate ? e.createdAt.toDate().toLocaleString() : "-";
+                    vAvailability.innerText = e.availability || "";
+                    
+                    const user = auth.currentUser;
+                    unblockBtn.style.display = (user.email === ADMIN_EMAIL || user.uid === e.userId) ? "block" : "none";
+                    openModal("viewModal");
                 }
             });
             calendar.render();
-            setupRealtimeSync();
-        });
+            loadBookings();
+        }
 
-        // Combined Authentication State and Redirect Listener
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                loginBtn.textContent = 'Logout';
-                loginBtn.classList.remove('btn-primary');
-                loginBtn.classList.add('btn-secondary');
-            } else {
-                currentUser = null;
-                loginBtn.textContent = 'Login';
-                loginBtn.classList.remove('btn-secondary');
-                loginBtn.classList.add('btn-primary');
-            }
-        });
-
-        // Trigger safe redirect routing to bypass pop-up context constraints
-        loginBtn.addEventListener('click', () => {
-            if (!currentUser) {
-                signInWithRedirect(auth, provider).catch(err => {
-                    console.error("Authentication handshake failure:", err);
-                    alert("Redirect execution interrupted. Verify connection integrity.");
-                });
-            } else {
-                signOut(auth);
-            }
-        });
-
-        // Sync data directly from the desktop "blockedDates" collection
-        function setupRealtimeSync() {
-            const q = collection(db, "blockedDates");
-            onSnapshot(q, (snapshot) => {
-                const events = [];
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (data.rooms && Array.isArray(data.rooms)) {
-                        data.rooms.forEach(room => {
-                            events.push({
-                                title: `${data.guestName || "Guest"} (${room})`,
-                                start: data.date,
-                                allDay: true,
-                                backgroundColor: '#007aff'
-                            });
-                        });
-                    }
-                });
+        function loadBookings() {
+            onSnapshot(query(collection(db, "blockedDates")), snap => {
                 calendar.removeAllEvents();
-                calendar.addEventSource(events);
-            }, (error) => {
-                console.error("Database read mismatch:", error);
-            });
-        }
-
-        function openBookingSheet(dateStr) {
-            document.getElementById('selectedDate').value = dateStr;
-            document.getElementById('modalTitle').textContent = `Book for ${dateStr}`;
-            bookingModal.classList.add('active');
-            modalOverlay.classList.add('active');
-        }
-
-        function closeBookingSheet() {
-            bookingModal.classList.remove('active');
-            modalOverlay.classList.remove('active');
-            bookingForm.reset();
-        }
-
-        closeModalBtn.addEventListener('click', closeBookingSheet);
-        modalOverlay.addEventListener('click', closeBookingSheet);
-
-        bookingForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!currentUser) return;
-
-            const date = document.getElementById('selectedDate').value;
-            const guestName = document.getElementById('guestName').value.trim();
-            const checkedBoxes = document.querySelectorAll('input[name="rooms"]:checked');
-            const selectedRooms = Array.from(checkedBoxes).map(cb => cb.value);
-
-            if (selectedRooms.length === 0) {
-                alert('Please select at least one room.');
-                return;
-            }
-
-            try {
-                await addDoc(collection(db, "blockedDates"), {
-                    date: date,
-                    guestName: guestName,
-                    rooms: selectedRooms,
-                    userId: currentUser.uid,
-                    userEmail: currentUser.email,
-                    createdAt: new Date().toISOString()
-                });
-                closeBookingSheet();
-            } catch (error) {
-                console.error("Write rejected by security validation policy:", error);
-                alert("Booking failure: Verification failed.");
-            }
-        });
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-
-    <!-- APPLE MOBILE WEB APP (NATIVE PWA) METAS -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Halom Casa">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-
-    <!-- SINGLE-LINE CSP: Optimized to bypass iOS Safari limitations and prevent GitHub Pages build crashes -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; upgrade-insecure-requests; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://apis.google.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; font-src 'self' data: blob: https:; connect-src https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://www.googleapis.com https://*.googleapis.com wss://firestore.googleapis.com; worker-src 'self' blob:; frame-src https://halom-casa-booking-calendar.firebaseapp.com https://*.firebaseapp.com; manifest-src 'self';">
-
-    <meta name="referrer" content="strict-origin-when-cross-origin">
-    <meta http-equiv="X-XSS-Protection" content="0">
-    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=()">
-    
-    <title>Halom Casa Calendar (iOS)</title>
-
-    <!-- FullCalendar 6 Engine Core Framework Files -->
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
-
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-    <header class="app-header">
-        <h1>Halom Casa</h1>
-        <button id="loginBtn" class="btn btn-primary">Login</button>
-    </header>
-
-    <main class="app-container">
-        <div id="calendar"></div>
-    </main>
-
-    <div id="bookingModal" class="ios-bottom-sheet">
-        <div class="sheet-handle"></div>
-        <div class="sheet-content">
-            <h2 id="modalTitle">Book Room</h2>
-            <form id="bookingForm">
-                <input type="hidden" id="selectedDate">
+                const dayTotals = {};
                 
-                <div class="form-group">
-                    <label for="guestName">Guest Name</label>
-                    <input type="text" id="guestName" required autocomplete="off" placeholder="Enter guest name">
-                </div>
-
-                <div class="form-group">
-                    <label for="roomSelection">Select Rooms (Max 3)</label>
-                    <div class="rooms-checkbox-group">
-                        <label class="checkbox-tile">
-                            <input type="checkbox" name="rooms" value="Room 1">
-                            <span class="tile-label">Room 1</span>
-                        </label>
-                        <label class="checkbox-tile">
-                            <input type="checkbox" name="rooms" value="Room 2">
-                            <span class="tile-label">Room 2</span>
-                        </label>
-                        <label class="checkbox-tile">
-                            <input type="checkbox" name="rooms" value="Room 3">
-                            <span class="tile-label">Room 3</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" id="closeModalBtn" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" class="btn btn-success">Confirm Booking</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <div id="modalOverlay" class="sheet-overlay"></div>
-
-    <!-- Firebase SDK Modular Assembly -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCLeIhKV7wHeeTtJhKuCSJuoJwfr8Lqn54",
-            authDomain: "halom-casa-booking-calendar.firebaseapp.com",
-            projectId: "halom-casa-booking-calendar",
-            storageBucket: "halom-casa-booking-calendar.firebasestorage.app",
-            messagingSenderId: "171254486073",
-            appId: "1:171254486073:web:d1ea9a603c5b33d602a9e8",
-            measurementId: "G-CCRRXGVNY1"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
-
-        let currentUser = null;
-        let calendar = null;
-
-        const loginBtn = document.getElementById('loginBtn');
-        const bookingModal = document.getElementById('bookingModal');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const bookingForm = document.getElementById('bookingForm');
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('calendar');
-            calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                headerToolbar: {
-                    left: 'prev',
-                    center: 'title',
-                    right: 'next'
-                },
-                height: 'auto',
-                editable: false,
-                selectable: true,
-                select: function(info) {
-                    if (!currentUser) {
-                        alert('Please sign in to log reservations.');
-                        return;
-                    }
-                    openBookingSheet(info.startStr);
-                }
-            });
-            calendar.render();
-            setupRealtimeSync();
-        });
-
-        // Combined Authentication State and Redirect Listener
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                loginBtn.textContent = 'Logout';
-                loginBtn.classList.remove('btn-primary');
-                loginBtn.classList.add('btn-secondary');
-            } else {
-                currentUser = null;
-                loginBtn.textContent = 'Login';
-                loginBtn.classList.remove('btn-secondary');
-                loginBtn.classList.add('btn-primary');
-            }
-        });
-
-        // Trigger safe redirect routing to bypass pop-up context constraints
-        loginBtn.addEventListener('click', () => {
-            if (!currentUser) {
-                signInWithRedirect(auth, provider).catch(err => {
-                    console.error("Authentication handshake failure:", err);
-                    alert("Redirect execution interrupted. Verify connection integrity.");
+                snap.forEach(d => {
+                    const data = d.data();
+                    const used = roomsUsed(data.bookingType || "1 Room");
+                    dayTotals[data.date] = (dayTotals[data.date] || 0) + used;
                 });
-            } else {
-                signOut(auth);
-            }
-        });
 
-        // Sync data directly from the desktop "blockedDates" collection
-        function setupRealtimeSync() {
-            const q = collection(db, "blockedDates");
-            onSnapshot(q, (snapshot) => {
-                const events = [];
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (data.rooms && Array.isArray(data.rooms)) {
-                        data.rooms.forEach(room => {
-                            events.push({
-                                title: `${data.guestName || "Guest"} (${room})`,
-                                start: data.date,
-                                allDay: true,
-                                backgroundColor: '#007aff'
-                            });
-                        });
-                    }
+                snap.forEach(d => {
+                    const data = d.data();
+                    const remaining = Math.max(0, 3 - (dayTotals[data.date] || 0));
+                    calendar.addEvent({
+                        title: `${data.bookingType} - ${data.guestName}`,
+                        start: data.date,
+                        allDay: true,
+                        color: getUserColor(data.bookedBy || ""),
+                        extendedProps: {
+                            docId: d.id,
+                            guestName: data.guestName,
+                            bookingType: data.bookingType,
+                            bookedBy: data.bookedBy,
+                            userId: data.userId,
+                            createdAt: data.createdAt,
+                            availability: remaining === 0 ? "Fully Booked" : remaining + " room(s) available"
+                        }
+                    });
                 });
-                calendar.removeAllEvents();
-                calendar.addEventSource(events);
-            }, (error) => {
-                console.error("Database read mismatch:", error);
             });
         }
 
-        function openBookingSheet(dateStr) {
-            document.getElementById('selectedDate').value = dateStr;
-            document.getElementById('modalTitle').textContent = `Book for ${dateStr}`;
-            bookingModal.classList.add('active');
-            modalOverlay.classList.add('active');
-        }
+        saveBooking.onclick = async () => {
+            const user = auth.currentUser;
+            const guest = guestName.value.trim();
+            const type = bookingType.value;
+            if (!guest) {
+                alert("Enter guest name");
+                return;
+            }
+            
+            const events = calendar.getEvents().filter(e => e.startStr === selectedDate);
+            let used = 0;
+            let full = false;
+            
+            events.forEach(e => {
+                const t = e.extendedProps.bookingType;
+                if (t === "Full Property") full = true;
+                used += roomsUsed(t);
+            });
 
-        function closeBookingSheet() {
-            bookingModal.classList.remove('active');
-            modalOverlay.classList.remove('active');
-            bookingForm.reset();
-        }
-
-        closeModalBtn.addEventListener('click', closeBookingSheet);
-        modalOverlay.addEventListener('click', closeBookingSheet);
-
-        bookingForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!currentUser) return;
-
-            const date = document.getElementById('selectedDate').value;
-            const guestName = document.getElementById('guestName').value.trim();
-            const checkedBoxes = document.querySelectorAll('input[name="rooms"]:checked');
-            const selectedRooms = Array.from(checkedBoxes).map(cb => cb.value);
-
-            if (selectedRooms.length === 0) {
-                alert('Please select at least one room.');
+            if (full) {
+                alert("Full Property already booked.");
+                return;
+            }
+            
+            const requested = roomsUsed(type);
+            if (used + requested > 3) {
+                alert("Not enough rooms available.");
                 return;
             }
 
             try {
                 await addDoc(collection(db, "blockedDates"), {
-                    date: date,
-                    guestName: guestName,
-                    rooms: selectedRooms,
-                    userId: currentUser.uid,
-                    userEmail: currentUser.email,
-                    createdAt: new Date().toISOString()
+                    date: selectedDate,
+                    guestName: guest,
+                    bookingType: type,
+                    bookedBy: user.email,
+                    userId: user.uid,
+                    createdAt: serverTimestamp()
                 });
-                closeBookingSheet();
-            } catch (error) {
-                console.error("Write rejected by security validation policy:", error);
-                alert("Booking failure: Verification failed.");
+                guestName.value = "";
+                closeModal("bookingModal");
+            } catch (err) {
+                alert("Error saving booking: " + err.message);
             }
-        });
+        };
+
+        unblockBtn.onclick = async () => {
+            try {
+                await deleteDoc(doc(db, "blockedDates", selectedDoc));
+                closeModal("viewModal");
+            } catch (err) {
+                alert("Error deleting booking: " + err.message);
+            }
+        };
     </script>
 </body>
 </html>
